@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <item android:title="Faculties">
+        <menu>
+            <!--                <item-->
+            <!--                    android:id="@+id/nav_projects"-->
+            <!--                    android:icon="@drawable/pdfs"-->
+            <!--                    android:title="@string/projects" />-->
+            <item
+                android:id="@+id/nav_engineering"
+                android:icon="@drawable/engineering"
+                android:title="@string/faculty_engineering" />
+            <item
+                android:id="@+id/nav_fbms"
+                android:icon="@drawable/management"
+                android:title="@string/faculty_business_mgt_studies" />
+            <item
+                android:id="@+id/nav_fast"
+                android:icon="@drawable/fast_ico"
+                android:title="@string/faculty_applied_science_technology" />
+            <item
+                android:id="@+id/nav_health"
+                android:icon="@drawable/health"
+                android:title="@string/faculty_health_allied_science" />
+            <item
+                android:id="@+id/nav_built"
+                android:icon="@drawable/built"
+                android:title="@string/faculty_built_natural_environment" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/nav_downloads"
+        android:icon="@drawable/downloads"
+        android:title="Downloads" />
+
+</menu>

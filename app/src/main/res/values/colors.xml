@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#224E72</color>
+    <color name="colorPrimaryDark">#134367</color>
+    <color name="colorAccent">#F17508</color>
+
+    <!-- colors for button -->
+    <color name="gradient_start_color">#134367</color>
+    <color name="gradient_end_color">#618199</color>
+
+    <!-- colors for tab and screen text -->
+    <color name="tab_indicator_gray">#C0C0C0</color>
+    <color name="intro_title_color">#000000</color>
+    <color name="intro_description_color">#656565</color>
+
+    <!-- extra colors -->
+    <color name="color_white">#FFFFFF</color>
+    <color name="darkGray">#6C6C6C</color>
+    <color name="color_recyclerView">#FFFFFF</color>
+    <color name="color_cardView">#FFFFFF</color>
+    <color name="color_search_editText_bg">#16344C</color>
+    <color name="main_page_background">#99EAE5E5</color>
+
+<!--    sendbird-->
+    <color name="btn_send_disabled">#8e8e8e</color>
+    <color name="btn_send">#FFFFFF</color>
+
+    <!-- Open Chat -->
+    <color name="openChatText">#47505d</color>
+    <color name="openChatNicknameOther">#3a414d</color>
+    <color name="openChatNicknameMe">#00BCD4</color>
+</resources>

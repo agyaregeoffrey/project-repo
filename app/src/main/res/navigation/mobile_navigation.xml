@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/nav_projects">
+
+    <fragment
+        android:id="@+id/nav_projects"
+        android:name="com.activeminds.projectrepo.ui.projects.ProjectsFragment"
+        android:label="@string/menu_projects"
+        tools:layout="@layout/fragment_projects">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_engineering"
+        android:name="com.activeminds.projectrepo.ui.engineering.EngineeringFragment"
+        android:label="@string/menu_engineering"
+        tools:layout="@layout/fragment_engineering">
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_fbms"
+        android:name="com.activeminds.projectrepo.ui.fbms.FbmsFragment"
+        android:label="@string/menu_fbms"
+        tools:layout="@layout/fragment_fbms" />
+
+    <fragment
+        android:id="@+id/nav_fast"
+        android:name="com.activeminds.projectrepo.ui.fast.FastFragment"
+        android:label="@string/menu_fast"
+        tools:layout="@layout/fragment_fast" />
+
+    <fragment
+        android:id="@+id/nav_health"
+        android:name="com.activeminds.projectrepo.ui.health.HealthFragment"
+        android:label="@string/menu_health"
+        tools:layout="@layout/fragment_health">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_built"
+        android:name="com.activeminds.projectrepo.ui.built.BuiltFragment"
+        android:label="@string/menu_built"
+        tools:layout="@layout/fragment_built" />
+
+    <fragment
+        android:id="@+id/nav_downloads"
+        android:name="com.activeminds.projectrepo.ui.downloads.DownloadsFragment"
+        android:label="@string/menu_downloads"
+        tools:layout="@layout/fragment_downloads" />
+</navigation>
