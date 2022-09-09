@@ -141,7 +141,7 @@ class UploadProjectActivity : AppCompatActivity() {
             projectYear = ""
         }
 
-        if (projectTitle.isNullOrBlank() || indexNumber.isNullOrBlank() || projectYear.isNullOrBlank()) {
+        if (projectTitle.isBlank() || indexNumber.isBlank() || projectYear.isBlank()) {
             showSnackBar(getString(R.string.all_fields_required))
         } else {
             val storageReference: StorageReference = mStorageReference.child("$FB_STORAGE_PATH/$fileName")
@@ -239,8 +239,8 @@ class UploadProjectActivity : AppCompatActivity() {
         }?.use { cursor ->
             val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             cursor.moveToFirst()
-            textViewFileStatus.text = "${cursor.getString(index)}"
-            fileName = "${cursor.getString(index)}"
+            textViewFileStatus.text = cursor.getString(index)
+            fileName = cursor.getString(index)
             fileNameWithoutExtension = File(fileName).nameWithoutExtension
         }
     }
