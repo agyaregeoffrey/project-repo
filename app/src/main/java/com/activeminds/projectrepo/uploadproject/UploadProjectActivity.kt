@@ -11,9 +11,17 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import com.activedev.projecttocloud.*
 import com.activeminds.projectrepo.R
+import com.activeminds.projectrepo.databinding.ActivityUploadProjectBinding
+import com.activeminds.projectrepo.utils.gone
+import com.activeminds.projectrepo.utils.showSnack
+import com.activeminds.projectrepo.utils.viewBinding
+import com.activeminds.projectrepo.utils.visible
 import com.activeminds.projectrepo.widgets.WaitingDialog
+import com.dev.gka.plagiarismchecker.models.PlagiarismRequestBody
 import com.google.android.gms.tasks.Task
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -22,46 +30,140 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import kotlinx.android.synthetic.main.content_upload_project.*
+import com.itextpdf.text.pdf.PdfReader
+import com.itextpdf.text.pdf.parser.PdfTextExtractor
+import timber.log.Timber
 import java.io.File
 import java.util.regex.Pattern
 
 class UploadProjectActivity : AppCompatActivity() {
 
+    private val binding: ActivityUploadProjectBinding by viewBinding(ActivityUploadProjectBinding::inflate)
+    private val viewModel: UploadActivityViewModel by viewModels()
+
     private var fileName: String = ""
     private var fileNameWithoutExtension: String = ""
-    private var mView: View? = null
+    private var fileBytes: ByteArray? = null
+    private var extractedText = ""
 
     private lateinit var mUri: Uri
     private lateinit var mFirestoreDb: FirebaseFirestore
     private lateinit var mStorageReference: StorageReference
 
+    private val startForResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                mUri = result.data!!.data!!
+                getFileName(result.data!!)
+
+                // Get selected PDF file URI as bytes
+                // Pass bytes to PDFTextExtractor to extract text
+                fileBytes = mUri.let { uri ->
+                    applicationContext.contentResolver.openInputStream(
+                        uri
+                    )?.readBytes()
+                }
+                if (fileBytes != null) {
+                    extractedText = extractTextFromPdf(fileBytes!!)
+                    viewModel.setExtractedData(extractedText)
+                    binding.content.buttonSubmit.showSnack("Checking plagiarism. Please wait.")
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_upload_project)
-        setSupportActionBar(findViewById(R.id.upload_toolbar))
+        setContentView(binding.root)
+        setSupportActionBar(binding.uploadToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        mView = upload_project_root
 
         mFirestoreDb = FirebaseFirestore.getInstance()
         mStorageReference = FirebaseStorage.getInstance().reference
 
-        val spinnerAdapter = ArrayAdapter(this,
-                android.R.layout.simple_spinner_item, DataManager.faculties.toList())
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerFaculties.adapter = spinnerAdapter
+        val spinnerAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item, DataManager.faculties.toList()
+        )
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.content.spinnerFaculties.adapter = spinnerAdapter
 
-        buttonSubmit.setOnClickListener {
-            MaterialAlertDialogBuilder(this)
-                    .setTitle(getString(R.string.upload_caution))
-                    .setMessage(getString(R.string.message_disclaimer))
-                    .setPositiveButton(getString(R.string.upload_upload)) { _, _ ->
-                        uploadProjectToFirebase()
-                    }
-                    .setNegativeButton(getString(R.string.upload_review), null)
-                    .show()
+        setUpViewModels()
+
+        binding.content.buttonSubmit.setOnClickListener {
+            showUploadConfirmationDialog()
         }
+    }
+
+    private fun setUpViewModels() {
+        viewModel.extractedText.observe(this) {
+            val body = PlagiarismRequestBody(language = "en", text = it)
+            viewModel.checkPlagiarismWithCall(body)
+        }
+
+        viewModel.loading.observe(this) { loading ->
+            if (loading) {
+                binding.content.indicatorPlagiarismPercent.apply {
+                    visible()
+                    isIndeterminate = true
+                }
+            }
+        }
+
+        viewModel.isSuccessful.observe(this) {
+            binding.content.buttonSubmit.showSnack("Check complete. See indicator for result")
+        }
+
+        viewModel.levelOfPlagiarism.observe(this) { level ->
+            if (level != null) {
+//                binding.content.indicatorPlagiarismPercent.setProgress(level, true)
+                if (level > 20) {
+                    binding.content.buttonSubmit.isEnabled = false
+                    binding.content.textViewPlagiarismStatus.visible()
+                    binding.content.indicatorPlagiarismPercent.apply {
+                        isIndeterminate = false
+                        setProgress(level, true)
+                        setIndicatorColor(getColor(R.color.colorRed))
+                        trackColor = getColor(R.color.colorLightRed)
+                    }
+                } else {
+                    binding.content.textViewPlagiarismStatus.gone()
+                    binding.content.buttonSubmit.isEnabled = true
+                    binding.content.indicatorPlagiarismPercent.apply {
+                        isIndeterminate = false
+                        setProgress(level, true)
+                        setIndicatorColor(getColor(R.color.colorDeepGreen))
+                        trackColor = getColor(R.color.colorLightGreen)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showUploadConfirmationDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.upload_caution))
+            .setMessage(getString(R.string.message_disclaimer))
+            .setPositiveButton(getString(R.string.upload_upload)) { _, _ ->
+                uploadProjectToFirebase()
+            }
+            .setNegativeButton(getString(R.string.upload_review), null)
+            .show()
+    }
+
+    private fun extractTextFromPdf(data: ByteArray): String {
+        var text = ""
+        try {
+            val reader = PdfReader(data)
+            val pages = reader.numberOfPages
+            for (i in 0 until pages) {
+                text = PdfTextExtractor.getTextFromPage(reader, i + 1).trim() + "\n"
+            }
+        } catch (e: Exception) {
+            text = "An error occurred"
+            Timber.d(e, "extractTextFromPdf: %s", e.message)
+        }
+
+        return text
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -83,21 +185,13 @@ class UploadProjectActivity : AppCompatActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (resultCode == Activity.RESULT_OK && requestCode == RESULT_CODE) {
-            mUri = data!!.data!!
-            getFileName(data)
-            buttonSubmit.isEnabled = true
-        }
-        super.onActivityResult(requestCode, resultCode, data)
-    }
-
     override fun onSaveInstanceState(bundle: Bundle) {
         super.onSaveInstanceState(bundle)
-        val spinnerSelection = getSpinnerSelection(spinnerFaculties.selectedItem.toString())
-        val projectTitle: String = textProjectTitle.editText?.text.toString().trim()
-        val indexNumber: String = textIndexNumber.editText?.text.toString().trim()
-        val projectYear: String = textProjectYear.editText?.text.toString().trim()
+        val spinnerSelection =
+            getSpinnerSelection(binding.content.spinnerFaculties.selectedItem.toString())
+        val projectTitle: String = binding.content.textProjectTitle.editText?.text.toString().trim()
+        val indexNumber: String = binding.content.textIndexNumber.editText?.text.toString().trim()
+        val projectYear: String = binding.content.textProjectYear.editText?.text.toString().trim()
 
         bundle.putString(SPINNER_SELECTION, spinnerSelection)
         bundle.putString(PROJECT_TITLE, projectTitle)
@@ -107,71 +201,71 @@ class UploadProjectActivity : AppCompatActivity() {
 
     override fun onRestoreInstanceState(bundle: Bundle) {
         super.onRestoreInstanceState(bundle)
-        textProjectTitle.editText?.setText(bundle.getString(PROJECT_TITLE))
-        textIndexNumber.editText?.setText(bundle.getString(INDEX_NUMBER))
-        textProjectYear.editText?.setText(bundle.getString(PROJECT_YEAR))
+        binding.content.textProjectTitle.editText?.setText(bundle.getString(PROJECT_TITLE))
+        binding.content.textIndexNumber.editText?.setText(bundle.getString(INDEX_NUMBER))
+        binding.content.textProjectYear.editText?.setText(bundle.getString(PROJECT_YEAR))
     }
 
     private fun selectPdfFile() {
         val intent = Intent()
         intent.type = FILE_TYPE
         intent.action = Intent.ACTION_GET_CONTENT
-        startActivityForResult(Intent.createChooser(intent, getString(R.string.upload_select_pdf)), RESULT_CODE)
+        startForResult.launch(Intent.createChooser(intent, getString(R.string.upload_select_pdf)))
     }
 
     private fun uploadProjectToFirebase() {
-        val spinnerSelection = getSpinnerSelection(spinnerFaculties.selectedItem.toString())
+        val spinnerSelection =
+            getSpinnerSelection(binding.content.spinnerFaculties.selectedItem.toString())
         val collectionPath = assignFacultyInitial(spinnerSelection)
 
-        val projectTitle: String = textProjectTitle.editText?.text.toString().trim()
-        var indexNumber: String = textIndexNumber.editText?.text.toString().trim()
-        var projectYear: String = textProjectYear.editText?.text.toString().trim()
+        val projectTitle: String = binding.content.textProjectTitle.editText?.text.toString().trim()
+        val indexNumber: String = binding.content.textIndexNumber.editText?.text.toString().trim()
+        var projectYear: String = binding.content.textProjectYear.editText?.text.toString().trim()
 
-        if (TextUtils.isEmpty(textProjectTitle.editText?.text.toString().trim())) {
-            textProjectTitle.editText?.error = getString(R.string.title_cannot_empty)
-        }
-        if ((!validateIndexNumber(indexNumber))) {
-            textIndexNumber.editText?.error = getString(R.string.invalid_index_number)
-            textIndexNumber.editText?.setText("")
-            indexNumber = ""
+        if (TextUtils.isEmpty(binding.content.textProjectTitle.editText?.text.toString().trim())) {
+            binding.content.textProjectTitle.editText?.error =
+                getString(R.string.title_cannot_empty)
         }
         if (projectYear.length != 4) {
-            textProjectYear.editText?.error = getString(R.string.invalid_date)
-            textProjectYear.editText?.setText("")
+            binding.content.textProjectYear.editText?.error = getString(R.string.invalid_date)
+            binding.content.textProjectYear.editText?.setText("")
             projectYear = ""
         }
 
         if (projectTitle.isBlank() || indexNumber.isBlank() || projectYear.isBlank()) {
-            showSnackBar(getString(R.string.all_fields_required))
+            binding.content.buttonSubmit.showSnack(getString(R.string.all_fields_required))
         } else {
-            val storageReference: StorageReference = mStorageReference.child("$FB_STORAGE_PATH/$fileName")
+            val storageReference: StorageReference =
+                mStorageReference.child("$FB_STORAGE_PATH/$fileName")
             storageReference.putFile(mUri)
-                    .addOnSuccessListener { taskSnapshot ->
-                        // insert download url to fb
-                        val uri: Task<Uri> = taskSnapshot.storage.downloadUrl
-                        while (!uri.isComplete);
-                        val url: Uri? = uri.result
+                .addOnSuccessListener { taskSnapshot ->
+                    // insert download url to fb
+                    val uri: Task<Uri> = taskSnapshot.storage.downloadUrl
+                    while (!uri.isComplete);
+                    val url: Uri? = uri.result
 
-                        val accountDetails: String? = FirebaseAuth.getInstance().currentUser?.email
+                    val accountDetails: String? = FirebaseAuth.getInstance().currentUser?.email
 
-                        val projectInfo = accountDetails?.let { email ->
-                            ProjectInfo(spinnerSelection, projectTitle,
-                                    url.toString(), projectYear, email, indexNumber)
-                        }
-                        if (projectInfo != null) {
-                            mFirestoreDb.collection(PROJECTS)
-                                    .document(FACULTIES)
-                                    .collection(collectionPath)
-                                    .add(projectInfo)
-                        }
-
-                        showProgress(false)
-                        showSnackBar("File Uploaded")
-                        resetFields()
+                    val projectInfo = accountDetails?.let { email ->
+                        ProjectInfo(
+                            spinnerSelection, projectTitle,
+                            url.toString(), projectYear, email, indexNumber
+                        )
                     }
-                    .addOnProgressListener {
-                        showProgress(true)
+                    if (projectInfo != null) {
+                        mFirestoreDb.collection(PROJECTS)
+                            .document(FACULTIES)
+                            .collection(collectionPath)
+                            .add(projectInfo)
                     }
+
+                    showProgress(false)
+                    binding.content.buttonSubmit.showSnack("File Uploaded")
+                    resetFields()
+                }
+                .addOnProgressListener {
+                    showProgress(true)
+                }
         }
 
     }
@@ -179,7 +273,6 @@ class UploadProjectActivity : AppCompatActivity() {
 
     // helpers
     companion object {
-        const val RESULT_CODE: Int = 1
         const val FILE_TYPE = "application/pdf"
         const val SPINNER_SELECTION = "spinnerSelection"
         const val PROJECT_TITLE = "projectTitle"
@@ -189,7 +282,7 @@ class UploadProjectActivity : AppCompatActivity() {
 
     }
 
-    private fun validateIndexNumber (indexNumber: String): Boolean {
+    private fun validateIndexNumber(indexNumber: String): Boolean {
         val pattern = Pattern.compile("^[0-9]{2}/[0-9]{4}/[0-9]{4}D$")
         val matcher = pattern.matcher(indexNumber)
 
@@ -239,18 +332,18 @@ class UploadProjectActivity : AppCompatActivity() {
         }?.use { cursor ->
             val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             cursor.moveToFirst()
-            textViewFileStatus.text = cursor.getString(index)
+            binding.content.textViewFileStatus.text = cursor.getString(index)
             fileName = cursor.getString(index)
             fileNameWithoutExtension = File(fileName).nameWithoutExtension
         }
     }
 
     private fun resetFields() {
-        textProjectTitle.editText?.setText("")
-        textIndexNumber.editText?.setText("")
-        textProjectYear.editText?.setText("");
-        textViewFileStatus.text = getString(R.string.file_status)
-        buttonSubmit.isEnabled = false
+        binding.content.textProjectTitle.editText?.setText("")
+        binding.content.textIndexNumber.editText?.setText("")
+        binding.content.textProjectYear.editText?.setText("");
+        binding.content.textViewFileStatus.text = getString(R.string.file_status)
+        binding.content.buttonSubmit.isEnabled = false
     }
 
     private fun showProgress(show: Boolean) {
@@ -258,14 +351,6 @@ class UploadProjectActivity : AppCompatActivity() {
             WaitingDialog.show(this);
         } else {
             WaitingDialog.dismiss();
-        }
-    }
-
-    private fun showSnackBar(message: String) {
-        mView?.let { view ->
-            Snackbar.make(view, message, Snackbar.LENGTH_LONG)
-                    .setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE)
-                    .show()
         }
     }
 }

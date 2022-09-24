@@ -4,7 +4,11 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="app/src/main/res/drawable/progress.xml" value="0.2005" />
+        <entry key="app/src/main/res/layout-land/activity_intro.xml" value="0.31569664902998235" />
         <entry key="app/src/main/res/layout/activity_intro.xml" value="0.2776268115942029" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.20969202898550723" />
+        <entry key="app/src/main/res/layout/activity_upload_project.xml" value="0.2776268115942029" />
+        <entry key="app/src/main/res/layout/content_upload_project.xml" value="0.3729166666666667" />
         <entry key="app/src/main/res/layout/intro_layout_screen.xml" value="0.20969202898550723" />
       </map>
     </option>

@@ -138,4 +138,5 @@
     <string name="delete_file">Remove File</string>
     <string name="permission_denied">Permission Denied</string>
     <string name="remove_file">File is Being Removed from List</string>
+    <string name="cant_upload_file">File can\'t be uploaded</string>
 </resources>
