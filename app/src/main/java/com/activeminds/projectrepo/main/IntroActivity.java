@@ -40,6 +40,8 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import java.util.ArrayList;
 import java.util.List;
 
+import timber.log.Timber;
+
 public class IntroActivity extends AppCompatActivity {
 
     public static final String MY_PREF = "myPref";
@@ -47,7 +49,6 @@ public class IntroActivity extends AppCompatActivity {
     private static final String TAG = "loginActivity";
     private static final int RC_SIGN_IN = 101;
     private ViewPager mViewPager;
-    private IntroViewPagerAdapter mIntroViewPagerAdapter;
     private List<IntroScreenModel> mIntroScreenModels;
     TabLayout mTabIndicator;
     Button mButtonNext;
@@ -78,7 +79,7 @@ public class IntroActivity extends AppCompatActivity {
 
         // viewPager adapter setup
         mViewPager = findViewById(R.id.screen_viewpager);
-        mIntroViewPagerAdapter = new IntroViewPagerAdapter(this, mIntroScreenModels);
+        IntroViewPagerAdapter mIntroViewPagerAdapter = new IntroViewPagerAdapter(this, mIntroScreenModels);
         mViewPager.setAdapter(mIntroViewPagerAdapter);
 
         mTabIndicator = findViewById(R.id.tab_indicator);
@@ -109,28 +110,20 @@ public class IntroActivity extends AppCompatActivity {
 
         buttonAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.button_animation);
         mButtonNext = findViewById(R.id.button_next);
-        mButtonNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mCurrentPosition = mViewPager.getCurrentItem();
-                if(mCurrentPosition < mIntroScreenModels.size()) {
-                    mCurrentPosition++;
-                    mViewPager.setCurrentItem(mCurrentPosition);
-                }
+        mButtonNext.setOnClickListener(v -> {
+            mCurrentPosition = mViewPager.getCurrentItem();
+            if(mCurrentPosition < mIntroScreenModels.size()) {
+                mCurrentPosition++;
+                mViewPager.setCurrentItem(mCurrentPosition);
+            }
 
-                if(mCurrentPosition == mIntroScreenModels.size()){
-                    // show the GET STARTED BUTTON
-                    loadLastScreen();
-                }
+            if(mCurrentPosition == mIntroScreenModels.size()){
+                // show the GET STARTED BUTTON
+                loadLastScreen();
             }
         });
 
-        whyLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                whyLoginClicked();
-            }
-        });
+        whyLogin.setOnClickListener(v -> whyLoginClicked());
 
         // sign in flow
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -141,19 +134,16 @@ public class IntroActivity extends AppCompatActivity {
         googleSignInClient = GoogleSignIn.getClient(this, gso);
 
 
-        signInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!isNetworkConnected()){
-                    new MaterialAlertDialogBuilder(IntroActivity.this)
-                            .setTitle(getString(R.string.no_internet))
-                            .setMessage(getString(R.string.internet_needed))
-                            .setPositiveButton(R.string.ok, null)
-                            .show();
-                } else {
-                    Intent signInIntent = googleSignInClient.getSignInIntent();
-                    startActivityForResult(signInIntent, RC_SIGN_IN);
-                }
+        signInButton.setOnClickListener(v -> {
+            if (!isNetworkConnected()){
+                new MaterialAlertDialogBuilder(IntroActivity.this)
+                        .setTitle(getString(R.string.no_internet))
+                        .setMessage(getString(R.string.internet_needed))
+                        .setPositiveButton(R.string.ok, null)
+                        .show();
+            } else {
+                Intent signInIntent = googleSignInClient.getSignInIntent();
+                startActivityForResult(signInIntent, RC_SIGN_IN);
             }
         });
 
@@ -180,15 +170,12 @@ public class IntroActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        switch (id) {
-            case R.id.action_skip:{
-                moveToLastTab();
-                loadLastScreen();
-                return true;
-            }
-            default:
-                return super.onOptionsItemSelected(item);
+        if (id == R.id.action_skip) {
+            moveToLastTab();
+            loadLastScreen();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -204,7 +191,7 @@ public class IntroActivity extends AppCompatActivity {
                 onLoggedIn(account);
             } catch (ApiException e) {
                 // The ApiException status code indicates the detailed failure reason.
-                Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
+                Timber.tag(TAG).w("signInResult:failed code=%s", e.getStatusCode());
             }
         }
     }
@@ -214,10 +201,9 @@ public class IntroActivity extends AppCompatActivity {
         super.onStart();
         GoogleSignInAccount lastSignedInAccount = GoogleSignIn.getLastSignedInAccount(this);
         if (lastSignedInAccount != null) {
-            //Toast.makeText(this, "Already Logged In", Toast.LENGTH_SHORT).show();
             onLoggedIn(lastSignedInAccount);
         } else {
-            Log.d(TAG, "Not logged in");
+            Timber.tag(TAG).d("Not logged in");
         }
     }
 
@@ -236,13 +222,10 @@ public class IntroActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-//                            FirebaseUser user = mFirebaseAuth.getCurrentUser();
-//                            updateUI(user);
+                            Timber.tag(TAG).d("signInWithCredential:success");
                         } else {
                             // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-//                            updateUI(null);
+                            Timber.tag(TAG).w(task.getException(), "signInWithCredential:failure");
                         }
 
                         // ...
@@ -270,12 +253,9 @@ public class IntroActivity extends AppCompatActivity {
     }
 
     private void openMainActivity(){
-        signInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                savePreferences();
-                finish();
-            }
+        signInButton.setOnClickListener(v -> {
+            savePreferences();
+            finish();
         });
     }
 
@@ -295,13 +275,12 @@ public class IntroActivity extends AppCompatActivity {
         SharedPreferences preferences = getApplicationContext().getSharedPreferences(MY_PREF, MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("isIntroOpened", true);
-        editor.commit();
+        editor.apply();
     }
 
     private boolean restorePrefData(){
         SharedPreferences preferences = getApplicationContext().getSharedPreferences(MY_PREF, MODE_PRIVATE);
-        Boolean hasIntroBeenOpened = preferences.getBoolean(IS_INTRO_OPENED, false);
-        return hasIntroBeenOpened;
+        return preferences.getBoolean(IS_INTRO_OPENED, false);
     }
 
 }

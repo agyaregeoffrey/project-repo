@@ -29,4 +29,9 @@
     <color name="openChatText">#47505d</color>
     <color name="openChatNicknameOther">#3a414d</color>
     <color name="openChatNicknameMe">#00BCD4</color>
+
+    <color name="colorLightGreen">#B9E3C6</color>
+    <color name="colorDeepGreen">#15803D</color>
+    <color name="colorRed">#FF3D3D</color>
+    <color name="colorLightRed">#FDA5A5</color>
 </resources>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/upload_project_root"
@@ -24,9 +23,9 @@
                 android:id="@+id/spinnerFaculties"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:layout_marginTop="32dp"
-                android:layout_marginEnd="32dp"
+                android:layout_marginStart="@dimen/margin_24"
+                android:layout_marginTop="@dimen/margin_24"
+                android:layout_marginEnd="@dimen/margin_24"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -35,7 +34,7 @@
                 android:id="@+id/textProjectTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="@dimen/margin_24"
                 app:layout_constraintEnd_toEndOf="@+id/spinnerFaculties"
                 app:layout_constraintStart_toStartOf="@+id/spinnerFaculties"
                 app:layout_constraintTop_toBottomOf="@+id/spinnerFaculties">
@@ -51,7 +50,7 @@
                 android:id="@+id/textIndexNumber"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="@dimen/margin_24"
                 app:layout_constraintEnd_toEndOf="@+id/textProjectTitle"
                 app:layout_constraintStart_toStartOf="@+id/textProjectTitle"
                 app:layout_constraintTop_toBottomOf="@+id/textProjectTitle">
@@ -59,15 +58,15 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textCapCharacters|text"
-                    android:hint="@string/hint_index_format" />
+                    android:hint="@string/hint_index_format"
+                    android:inputType="textCapCharacters|text" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/textProjectYear"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="@dimen/margin_24"
                 app:layout_constraintEnd_toEndOf="@+id/textIndexNumber"
                 app:layout_constraintStart_toStartOf="@+id/textIndexNumber"
                 app:layout_constraintTop_toBottomOf="@+id/textIndexNumber">
@@ -75,19 +74,37 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:hint="@string/project_year_hint"/>
+                    android:hint="@string/project_year_hint"
+                    android:inputType="number" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
-                android:id="@+id/textViewFileStatus"
+                android:id="@+id/tvPlagiarism"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:text="@string/file_status"
+                android:layout_marginTop="@dimen/margin_24"
+                android:text="Plagiarism Level"
+                android:fontFamily="@font/roboto_medium"
+                android:textColor="@color/intro_title_color"
                 app:layout_constraintEnd_toEndOf="@+id/textIndexNumber"
-                app:layout_constraintStart_toEndOf="@+id/imageView"
+                app:layout_constraintStart_toStartOf="@+id/imageView"
                 app:layout_constraintTop_toBottomOf="@+id/textProjectYear" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/indicatorPlagiarismPercent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_8"
+                android:indeterminate="false"
+                android:max="100"
+                android:visibility="gone"
+                app:indicatorColor="@color/gradient_start_color"
+                app:layout_constraintEnd_toEndOf="@+id/tvPlagiarism"
+                app:layout_constraintStart_toStartOf="@+id/tvPlagiarism"
+                app:layout_constraintTop_toBottomOf="@+id/tvPlagiarism"
+                app:trackColor="@color/gradient_end_color"
+                app:trackCornerRadius="28dp"
+                app:trackThickness="@dimen/margin_24" />
 
             <ImageView
                 android:id="@+id/imageView"
@@ -99,6 +116,30 @@
                 app:layout_constraintVertical_bias="0.4"
                 app:srcCompat="@drawable/ic_baseline_insert_drive_file_24" />
 
+            <TextView
+                android:id="@+id/textViewFileStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_24"
+                android:text="@string/file_status"
+                app:layout_constraintEnd_toEndOf="@+id/textIndexNumber"
+                app:layout_constraintStart_toEndOf="@+id/imageView"
+                app:layout_constraintTop_toBottomOf="@+id/textViewPlagiarismStatus" />
+
+
+            <TextView
+                android:id="@+id/textViewPlagiarismStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_8"
+                android:text="@string/cant_upload_file"
+                android:visibility="gone"
+                android:textColor="@color/colorRed"
+                android:fontFamily="@font/roboto_medium"
+                app:layout_constraintEnd_toEndOf="@+id/indicatorPlagiarismPercent"
+                app:layout_constraintStart_toStartOf="@+id/indicatorPlagiarismPercent"
+                app:layout_constraintTop_toBottomOf="@+id/indicatorPlagiarismPercent" />
+
             <Button
                 android:id="@+id/buttonSubmit"
                 android:layout_width="0dp"
@@ -107,9 +148,16 @@
                 android:enabled="false"
                 android:text="@string/submit_button"
                 android:textAllCaps="false"
-                app:layout_constraintEnd_toEndOf="@+id/textViewFileStatus"
+                app:layout_constraintEnd_toEndOf="@+id/textProjectYear"
                 app:layout_constraintStart_toStartOf="@+id/imageView"
                 app:layout_constraintTop_toBottomOf="@+id/textViewFileStatus" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/groupFileName"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="imageView,textViewFileStatus" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
