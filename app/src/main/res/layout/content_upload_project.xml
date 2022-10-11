@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/upload_project_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/upload_project_root"
     android:background="@color/main_page_background"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -83,8 +84,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_24"
-                android:text="Plagiarism Level"
                 android:fontFamily="@font/roboto_medium"
+                android:text="Plagiarism Level"
                 android:textColor="@color/intro_title_color"
                 app:layout_constraintEnd_toEndOf="@+id/textIndexNumber"
                 app:layout_constraintStart_toStartOf="@+id/imageView"
@@ -105,6 +106,21 @@
                 app:trackColor="@color/gradient_end_color"
                 app:trackCornerRadius="28dp"
                 app:trackThickness="@dimen/margin_24" />
+
+            <TextView
+                android:id="@+id/tvPlagiarismLevel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/plagiarism_percent"
+                android:textColor="@color/intro_title_color"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@id/indicatorPlagiarismPercent"
+                app:layout_constraintEnd_toEndOf="@id/indicatorPlagiarismPercent"
+                app:layout_constraintStart_toStartOf="@id/indicatorPlagiarismPercent"
+                app:layout_constraintTop_toTopOf="@id/indicatorPlagiarismPercent"
+                tools:text="20$" />
 
             <ImageView
                 android:id="@+id/imageView"
@@ -132,10 +148,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_8"
-                android:text="@string/cant_upload_file"
-                android:visibility="gone"
-                android:textColor="@color/colorRed"
                 android:fontFamily="@font/roboto_medium"
+                android:text="@string/cant_upload_file"
+                android:textColor="@color/colorRed"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="@+id/indicatorPlagiarismPercent"
                 app:layout_constraintStart_toStartOf="@+id/indicatorPlagiarismPercent"
                 app:layout_constraintTop_toBottomOf="@+id/indicatorPlagiarismPercent" />
@@ -154,9 +170,9 @@
 
             <androidx.constraintlayout.widget.Group
                 android:id="@+id/groupFileName"
-                android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 app:constraint_referenced_ids="imageView,textViewFileStatus" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

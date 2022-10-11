@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.content.res.ResourcesCompat
 import com.activedev.projecttocloud.*
 import com.activeminds.projectrepo.R
 import com.activeminds.projectrepo.databinding.ActivityUploadProjectBinding
@@ -102,9 +103,12 @@ class UploadProjectActivity : AppCompatActivity() {
 
         viewModel.loading.observe(this) { loading ->
             if (loading) {
+                binding.content.tvPlagiarismLevel.gone()
                 binding.content.indicatorPlagiarismPercent.apply {
                     visible()
                     isIndeterminate = true
+                    setIndicatorColor(ResourcesCompat.getColor(resources, R.color.gradient_start_color, null))
+                    trackColor = ResourcesCompat.getColor(resources, R.color.gradient_end_color, null)
                 }
             }
         }
@@ -115,7 +119,8 @@ class UploadProjectActivity : AppCompatActivity() {
 
         viewModel.levelOfPlagiarism.observe(this) { level ->
             if (level != null) {
-//                binding.content.indicatorPlagiarismPercent.setProgress(level, true)
+                binding.content.tvPlagiarismLevel.visible()
+                binding.content.tvPlagiarismLevel.text = getString(R.string.plagiarism_percent, level)
                 if (level > 20) {
                     binding.content.buttonSubmit.isEnabled = false
                     binding.content.textViewPlagiarismStatus.visible()

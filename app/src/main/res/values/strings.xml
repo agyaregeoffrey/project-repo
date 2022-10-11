@@ -132,11 +132,12 @@
     <string name="no_items_downloaded">No Items Downloaded</string>
     <string name="internet_needed">An internet connection is required to use this App</string>
     <string name="no_internet">No Internet</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="version_1_0_0_0">Version 1.0.0.0</string>
     <string name="more">Options</string>
     <string name="delete_file">Remove File</string>
     <string name="permission_denied">Permission Denied</string>
     <string name="remove_file">File is Being Removed from List</string>
     <string name="cant_upload_file">File can\'t be uploaded</string>
+    <string name="plagiarism_percent">%1$d\%</string>
 </resources>
